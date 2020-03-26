@@ -36,8 +36,8 @@ const storageTypes = {
     contentType: multerS3.AUTO_CONTENT_TYPE,
     ACL: 'public-read',
     resize: {
-      width: 100,
-      height: 400,
+      width: 800,
+      height: 350,
     },
   }),
 };

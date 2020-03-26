@@ -49,17 +49,8 @@ app.use('/blog', require('./routes/blog'));
 app.use('/blog/contributor', require('./routes/contributor/blog'));
 app.use('/admin/blog', require('./routes/admin/blog/blog'));
 
-const uri = process.env.ATLAS_URI;
-mongoose.connect(uri, {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useUnifiedTopology: true,
-});
-
-const { connection } = mongoose;
-connection.once('open', () => {
-  console.log('MongoDB Atlas database connection established successfully.');
-});
+var mongooseBlog = require("./connections/blog_db_connect.js");
+// var mongooseUser = require("./connections/user_db_connect.js");
 
 const port = process.env.PORT || global.gConfig.node_port;
 

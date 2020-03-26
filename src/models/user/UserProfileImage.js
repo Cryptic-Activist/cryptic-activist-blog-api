@@ -10,25 +10,28 @@ const {
 
 const s3 = new aws.S3();
 
-const PostCoverSchema = new mongoose.Schema({
+const UserProfileImageSchema = new mongoose.Schema({
   id: String,
   name: String,
   size: Number,
   key: String,
   url: String,
+  origin: String,
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-PostCoverSchema.pre('save', function () {
-  if (!this.url) {
-    this.url = `https://${process.env.BUCKET_NAME}.s3.amazonaws.com/${this.key}`;
+UserProfileImageSchema.pre('save', function () {
+  if (this.origin !== 'Github') {
+    if (!this.url) {
+      this.url = `${process.env.APP_URL}/files/${this.key}`;
+    }
   }
 });
 
-PostCoverSchema.pre('remove', function () {
+UserProfileImageSchema.pre('remove', function () {
   if (process.env.STORAGE_TYPE === 's3') {
     return s3
       .deleteObject({
@@ -48,4 +51,4 @@ PostCoverSchema.pre('remove', function () {
   );
 });
 
-module.exports = mongoose.model('PostCover', PostCoverSchema);
+module.exports = mongoose.model('UserProfileImage', UserProfileImageSchema);
