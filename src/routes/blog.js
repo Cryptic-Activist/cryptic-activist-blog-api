@@ -166,146 +166,143 @@ app.get('/short', async (req, res) => {
 
 
 app.get('/home/main-post', async (req, res) => {
-  const postsList = [];
-  console.log('/home/main-post');
-  Post.find()
-    .sort('-howManyRead')
-    .limit(5)
-    .populate('cover')
-    .then((posts) => {
-      console.log('post main:', posts);
-      posts.map((post) => {
-        postsList.push({
-          id: post.id,
-          title: post.title,
-          slug: post.slug,
-          category: post.category,
-          cover: post.cover,
-          publishedOn: post.publishedOn,
-          updateOn: post.updateOn,
-        });
-      });
+  let postsList = [];
 
-      res.status(200).send(postsList);
+  try {
+    const posts = await Post.find()
+      .sort('-howManyRead')
+      .limit(5)
+
+    let postsLen = posts.length;
+    posts.map(async (post, i) => {
+      postsList.push({
+        id: post.id,
+        title: post.title,
+        slug: post.slug,
+        category: post.category,
+        cover: await getCover(post.cover),
+        publishedOn: post.publishedOn,
+        updateOn: post.updateOn,
+      })
+      if (postsLen === i + 1) {
+        res.json(postsList)
+      }
     })
-    .catch((err) => {
-      res.json({
-        err,
-      });
-    });
+  } catch(err) {
+    console.log(err)
+  }
 });
 
 
 app.get('/home/news', async (req, res) => {
-  const postsList = [];
-  console.log('userId:', req.userId);
-  Post.find({
-    type: 'News',
-  })
+  let postsList = [];
+  try {
+    const posts = await Post.find({
+      type: 'News',
+    })
     .sort({ publishedOn: -1 })
     .limit(6)
-    .populate('cover')
-    .then((posts) => {
-      if (posts.lenth === 0) {
-        res.status(200).send({
-          found: false,
-        });
-      } else if (posts.length > 0) {
-        posts.map((post) => {
-          postsList.push({
-            id: post.id,
-            title: post.title,
-            slug: post.slug,
-            category: post.category,
-            cover: post.cover,
-            publishedOn: post.publishedOn,
-            updateOn: post.updateOn,
-          });
-        });
 
-        res.status(200).send(postsList);
+    let postsLen = posts.length;
+    posts.map(async (post, i) => {
+      postsList.push({
+        tags: post.tags,
+        comments: post.comments,
+        howManyRead: post.howManyRead,
+        updatedOn: post.updatedOn,
+        _id: post._id,
+        id: post.id,
+        type: post.type,
+        category: post.category,
+        title: post.title,
+        slug: post.slug,
+        cover: await getCover(post.cover),
+        content: post.content,
+        author: await getAuthor(post.author),
+        publishedOn: post.publishedOn,
+        __v: post.__v
+      })
+      if (postsLen === i + 1) {
+        res.json(postsList)
       }
-    })
-    .catch((err) => {
-      res.json({
-        err,
-      });
     });
+  } catch(err) {
+    console.log(err)
+  }
 });
 
 app.get('/home/most-recent-videos', async (req, res) => {
-  const postsList = [];
-  console.log('userId:', req.userId);
-  Post.find({
-    type: 'Video',
-  })
+  let postsList = [];
+  try {
+    const posts = await Post.find({
+      type: 'Video',
+    })
     .sort({ publishedOn: -1 })
     .limit(4)
-    .populate('cover')
-    .then((posts) => {
-      if (posts.lenth === 0) {
-        res.status(200).send({
-          found: false,
-        });
-      } else if (posts.length > 0) {
-        posts.map((post) => {
-          postsList.push({
-            id: post.id,
-            title: post.title,
-            slug: post.slug,
-            category: post.category,
-            cover: post.cover,
-            publishedOn: post.publishedOn,
-            updateOn: post.updateOn,
-          });
-        });
 
-        res.status(200).send(postsList);
+    let postsLen = posts.length;
+    posts.map(async (post, i) => {
+      postsList.push({
+        tags: post.tags,
+        comments: post.comments,
+        howManyRead: post.howManyRead,
+        updatedOn: post.updatedOn,
+        _id: post._id,
+        id: post.id,
+        type: post.type,
+        category: post.category,
+        title: post.title,
+        slug: post.slug,
+        cover: await getCover(post.cover),
+        content: post.content,
+        author: await getAuthor(post.author),
+        publishedOn: post.publishedOn,
+        __v: post.__v
+      })
+      if (postsLen === i + 1) {
+        res.json(postsList)
       }
-    })
-    .catch((err) => {
-      res.json({
-        err,
-      });
     });
+  } catch(err) {
+    console.log(err)
+  }
 });
 
 app.get('/home/tutorials', async (req, res) => {
-  const postsList = [];
-  console.log('userId:', req.userId);
-  Post.find({
-    type: 'Tutorial',
-  })
+  let postsList = [];
+  try {
+    const posts = await Post.find({
+      type: 'Tutorial',
+    })
     .sort({ publishedOn: -1 })
     .limit(6)
-    .populate('cover')
-    .then((posts) => {
-      if (posts.lenth === 0) {
-        res.status(200).send({
-          found: false,
-        });
-      } else if (posts.length > 0) {
-        posts.map((post) => {
-          postsList.push({
-            id: post.id,
-            title: post.title,
-            slug: post.slug,
-            category: post.category,
-            cover: post.cover,
-            category: post.category,
-            publishedOn: post.publishedOn,
-            updateOn: post.updateOn,
-          });
-        });
 
-        res.status(200).send(postsList);
+    let postsLen = posts.length;
+    posts.map(async (post, i) => {
+      postsList.push({
+        tags: post.tags,
+        comments: post.comments,
+        howManyRead: post.howManyRead,
+        updatedOn: post.updatedOn,
+        _id: post._id,
+        id: post.id,
+        type: post.type,
+        category: post.category,
+        title: post.title,
+        slug: post.slug,
+        cover: await getCover(post.cover),
+        content: post.content,
+        author: await getAuthor(post.author),
+        publishedOn: post.publishedOn,
+        __v: post.__v
+      })
+      if (postsLen === i + 1) {
+        res.json(postsList)
       }
-    })
-    .catch((err) => {
-      res.json({
-        err,
-      });
     });
+  } catch(err) {
+    console.log(err)
+  }
 });
 
 app.get('/home/articles', async (req, res) => {
@@ -316,7 +313,6 @@ app.get('/home/articles', async (req, res) => {
     })
     .sort({ publishedOn: -1 })
     .limit(6)
-
 
     let postsLen = posts.length;
     posts.map(async (post, i) => {
@@ -347,57 +343,68 @@ app.get('/home/articles', async (req, res) => {
 });
 
 app.get('/most/recent/post', async (req, res) => {
-  const postsList = [];
-  Post.find()
+  let postsList = [];
+  try {
+    const posts = await Post.find({
+      type: 'Tutorial',
+    })
     .sort({ publishedOn: -1 })
     .limit(1)
-    .populate('cover')
-    .populate({
-      path: 'author',
-      populate: {
-        path: 'profileImage',
-        model: 'UserProfileImage',
-      },
-    })
-    .then((posts) => {
-      if (posts.lenth === 0) {
-        res.status(200).send({
-          found: false,
-        });
-      } else if (posts.length > 0) {
-        posts.map((post) => {
-          postsList.push({
-            id: post.id,
-            title: post.title,
-            slug: post.slug,
-            category: post.category,
-            cover: post.cover,
-            author: post.author,
-            publishedOn: post.publishedOn,
-            updateOn: post.updateOn,
-          });
-        });
 
-        res.status(200).send(postsList);
+    let postsLen = posts.length;
+    posts.map(async (post, i) => {
+      postsList.push({
+        tags: post.tags,
+        comments: post.comments,
+        howManyRead: post.howManyRead,
+        updatedOn: post.updatedOn,
+        _id: post._id,
+        id: post.id,
+        type: post.type,
+        category: post.category,
+        title: post.title,
+        slug: post.slug,
+        cover: await getCover(post.cover),
+        content: post.content,
+        author: await getAuthor(post.author),
+        publishedOn: post.publishedOn,
+        __v: post.__v
+      })
+      if (postsLen === i + 1) {
+        res.json(postsList)
       }
-    })
-    .catch((err) => {
-      res.json({
-        err,
-      });
     });
+  } catch(err) {
+    console.log(err)
+  }
 });
 
 app.get('/get/top-authors', async (req, res) => {
-  User.find()
-    .limit(3)
-    .populate('profileImage')
-    .then((users) => {
-      res.status(200).send(users);
-    })
-    .catch((err) => {
-      res.json(err);
+  let authorsList = [];
+  try {
+    const authors = await User.find()
+      .limit(3);
+    
+    console.log('authors:', authors)
+    let authorsLen = authors.length;
+    authors.map(async (author, i) => {
+      authorsList.push(await getAuthor(author._id));
+      if (authorsLen === i + 1) {
+        res.json(authorsList)
+      }
     });
+  } catch(err) {
+    console.log(err);
+  }
+  
+  // User.find()
+  //   .limit(3)
+  //   .then((users) => {
+  //     res.status(200).send(users);
+  //   })
+  //   .catch((err) => {
+  //     res.json(err);
+  //   });
 });
 
 
