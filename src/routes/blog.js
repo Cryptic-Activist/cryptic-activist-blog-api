@@ -310,13 +310,13 @@ app.get('/home/tutorials', async (req, res) => {
 
 app.get('/home/articles', async (req, res) => {
   let postsList = [];
-
   try {
     const posts = await Post.find({
       type: 'Article',
     })
     .sort({ publishedOn: -1 })
     .limit(6)
+
 
     let postsLen = posts.length;
     posts.map(async (post, i) => {
@@ -341,46 +341,9 @@ app.get('/home/articles', async (req, res) => {
         res.json(postsList)
       }
     });
-
   } catch(err) {
     console.log(err)
   }
-
-  // Post.find({
-  //   type: 'Article',
-  // })
-  // .sort({ publishedOn: -1 })
-  // .limit(6)
-  // .then(async (posts) => {
-  //   console.log('posts articles:', posts)
-  //   const commentsLen = comments.length;
-  //   postsList.push({
-  //     tags: posts.tags,
-  //     comments: posts.comments,
-  //     howManyRead: posts.howManyRead,
-  //     updatedOn: posts.updatedOn,
-  //     _id: posts._id,
-  //     id: posts.id,
-  //     type: posts.type,
-  //     category: posts.category,
-  //     title: posts.title,
-  //     slug: posts.slug,
-  //     cover: await getCover(posts.author),
-  //     content: posts.content,
-  //     author: await getAuthor(posts.author),
-  //     publishedOn: posts.publishedOn,
-  //     __v: posts.__v
-  //   })
-  //   if (commentsLen === i + 1) {
-  //     res.json(commentsList)
-  //   }
-  // })
-  // .catch((err) => {
-  //   console.log('err:', err)
-  //   res.json({
-  //     err,
-  //   });
-  // });
 });
 
 app.get('/most/recent/post', async (req, res) => {
