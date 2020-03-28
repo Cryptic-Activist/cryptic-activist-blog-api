@@ -322,33 +322,57 @@ app.get('/get/slug/:year/:month/:day/:slug', (req, res) => {
   } = req.params;
 
   const fullSlug = `${year}/${month}/${day}/${slug}`;
-  const postsList = [];
-  Post.find({
-    slug: fullSlug,
+  // const postsList = [];
+  // Post.find({
+  //   slug: fullSlug,
+  // })
+  //   .populate('cover')
+  //   .then((posts) => {
+  //     posts.map((post) => {
+  //       postsList.push({
+  //         id: post.id,
+  //         type: post.type,
+  //         slug: post.slug,
+  //         category: post.category,
+  //         title: post.title,
+  //         content: post.content,
+  //         tags: post.tags,
+  //         uploadedOn: post.uploadedOn,
+  //         updatedOn: post.updatedOn,
+  //       });
+  //     });
+  //     res.status(200).send(posts);
+  //   })
+  //   .catch((err) => {
+  //     res.json({
+  //       found: false,
+  //       error: err,
+  //     });
+  //   });
+
+  Post.findOne({
+    slug: fullSlug
   })
-    .populate('cover')
-    .then((posts) => {
-      posts.map((post) => {
-        postsList.push({
-          id: post.id,
-          type: post.type,
-          slug: post.slug,
-          category: post.category,
-          title: post.title,
-          content: post.content,
-          tags: post.tags,
-          uploadedOn: post.uploadedOn,
-          updatedOn: post.updatedOn,
-        });
-      });
-      res.status(200).send(posts);
-    })
-    .catch((err) => {
-      res.json({
-        found: false,
-        error: err,
-      });
-    });
+  .populate({
+    path: 'cover',
+    model: PostCover
+  })
+  .populate({
+    path: 'author',
+    model: User,
+    populate: {
+      path: 'profileImage',
+      model: UserProfileImage,
+    }
+  })
+  .then((post) => {
+    res.json(post)
+  })
+  .catch((err) => {
+    console.log(err)
+  }) 
+
+
 });
 
 app.get('/get/category/:category', async (req, res) => {
@@ -457,14 +481,14 @@ app.post('/comments/', async (req, res) => {
   PostComment.find({
     post: postId,
   })
-    // .populate({
-    //   path: 'author',
-    //   populate: {
-    //     path: 'profileImage',
-    //     model: 'UserProfileImage',
-    //   },
-    // })
-    .populate('author')
+    .populate({
+      path: 'author',
+      model: User,
+      populate: {
+        path: 'profileImage',
+        model: UserProfileImage,
+      }
+    })
     .then((commentsArray) => {
       console.log('commentsArray:', commentsArray)
       res.json(commentsArray)
