@@ -49,9 +49,6 @@ app.use('/blog', require('./routes/blog'));
 app.use('/blog/contributor', require('./routes/contributor/blog'));
 app.use('/admin/blog', require('./routes/admin/blog/blog'));
 
-var mongooseBlog = require("./connections/blog_db_connect.js");
-// var mongooseUser = require("./connections/user_db_connect.js");
-
 const port = process.env.PORT || global.gConfig.node_port;
 
 app.listen(port, () => {

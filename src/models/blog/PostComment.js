@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
+const process = require('process');
 
-const PostCommentReply = require('./PostCommentReply')
+var db = mongoose.createConnection(process.env.ATLAS_URI_BLOG, {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useUnifiedTopology: true,
+});
 
 const PostCommentSchema = new mongoose.Schema({
   id: {
@@ -46,6 +51,6 @@ const PostCommentSchema = new mongoose.Schema({
   },
 });
 
-const PostComment = mongoose.model('PostComment', PostCommentSchema);
+const PostComment = db.model('PostComment', PostCommentSchema);
 
 module.exports = PostComment;

@@ -8,6 +8,12 @@ const {
   promisify,
 } = require('util');
 
+var db = mongoose.createConnection(process.env.ATLAS_URI_BLOG, {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useUnifiedTopology: true,
+});
+
 const s3 = new aws.S3();
 
 const PostCoverSchema = new mongoose.Schema({
@@ -48,4 +54,6 @@ PostCoverSchema.pre('remove', function () {
   );
 });
 
-module.exports = mongoose.model('PostCover', PostCoverSchema);
+const PostCover =  db.model('PostCover', PostCoverSchema);
+
+module.exports = PostCover;

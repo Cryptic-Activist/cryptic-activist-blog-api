@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+var db = mongoose.createConnection(process.env.ATLAS_URI_BLOG, {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useUnifiedTopology: true,
+});
+
 const PostSchema = new mongoose.Schema({
   id: {
     type: String,
@@ -61,6 +67,6 @@ const PostSchema = new mongoose.Schema({
   },
 });
 
-const Post = mongoose.model('Post', PostSchema);
+const Post = db.model('Post', PostSchema);
 
 module.exports = Post;

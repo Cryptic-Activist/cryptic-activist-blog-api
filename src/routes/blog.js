@@ -20,25 +20,81 @@ const PostCover = require('../models/blog/PostCover');
 const User = require('../models/user/User');
 const UserProfileImage = require('../models/user/UserProfileImage');
 
-app.get('/get/comment/:commentId', async (req, res) => {
-  const { commentId } = req.params;
-  // User.find()
-  //   .populate('profileImage')
-  //   .then((users) => {
-  //     res.json(users)
-  //   })
-  //   .catch((err) => {
-  //     console.log(err)
-  //   })
 
-  PostComment.find()
-    .then((comment) => {
-      res.json(comment)
+const getAuthor = async (authorId) => {
+  const user = await User.findOne({
+    _id: authorId
+  })
+  const userImage = await UserProfileImage.findOne({
+    _id: user.profileImage
+  });
+
+  return {
+    socialMedia: user.socialMedia,
+    posts: user.posts,
+    following: user.following,
+    followers: user.followers,
+    _id: user._id,
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    quote: user.quote,
+    username: user.username,
+    password: user.password,
+    profileImage: userImage,
+    isAdmin: user.isAdmin,
+    origin: user.origin,
+    createdOn: user.createdOn,
+    __v: user.__v,
+  }
+}
+
+const getCover = async (coverId) => {
+  try {
+    const cover = await PostCover.findOne({
+      _id: coverId,
+    });
+    return cover
+  } catch(err) {
+    console.log(err);
+    return {}
+  }
+}
+
+app.post('/get/comments', async (req, res) => {
+  const { postId } = req.body;
+
+  try {
+    const comments = await PostComment.find({
+      post: postId
     })
-    .catch((err) => {
-      console.log(err)
-    })
-})
+
+    let commentsList = [];
+
+    const commentsLen = comments.length;
+    comments.map(async (comment, i) => {
+      commentsList.push({
+        replies: comment.replies,
+        updatedOn: comment.updatedOn,
+        _id: comment._id,
+        id: comment.id,
+        author: await getAuthor(comment.author),
+        post: comment.post,
+        content: comment.content,
+        publishedOn: comment.publishedOn,
+        likes: comment.likes,
+        dislikes: comment.dislikes,
+        __v: comment.__v
+      })
+      if (commentsLen === i + 1) {
+        res.json(commentsList)
+      }
+    });
+  } catch(err) {
+    console.log('err:', err)
+    res.status(500)
+  }
+});
 
 app.get('/', async (req, res) => {
   const pagination = req.query.pagination ? parseInt(req.query.pagination, 10) : 10;
@@ -253,34 +309,82 @@ app.get('/home/tutorials', async (req, res) => {
 });
 
 app.get('/home/articles', async (req, res) => {
-  const postsList = [];
-  Post.find({
-    type: 'Article',
-  })
-  .sort({ publishedOn: -1 })
-  .limit(6)
-  .populate('cover')
-  // .populate({
-  //   path: 'author',
-  //   populate: {
-  //     path: 'profileImage',
-  //     model: 'UserProfileImage',
-  //   },
-  // })
-  .then((posts) => {
-    console.log('posts articles:', posts)
-    res.status(200).send(posts);
-  })
-  .catch((err) => {
-    res.json({
-      err,
+  let postsList = [];
+
+  try {
+    const posts = await Post.find({
+      type: 'Article',
+    })
+    .sort({ publishedOn: -1 })
+    .limit(6)
+
+    let postsLen = posts.length;
+    posts.map(async (post, i) => {
+      postsList.push({
+        tags: post.tags,
+        comments: post.comments,
+        howManyRead: post.howManyRead,
+        updatedOn: post.updatedOn,
+        _id: post._id,
+        id: post.id,
+        type: post.type,
+        category: post.category,
+        title: post.title,
+        slug: post.slug,
+        cover: await getCover(post.cover),
+        content: post.content,
+        author: await getAuthor(post.author),
+        publishedOn: post.publishedOn,
+        __v: post.__v
+      })
+      if (postsLen === i + 1) {
+        res.json(postsList)
+      }
     });
-  });
+
+  } catch(err) {
+    console.log(err)
+  }
+
+  // Post.find({
+  //   type: 'Article',
+  // })
+  // .sort({ publishedOn: -1 })
+  // .limit(6)
+  // .then(async (posts) => {
+  //   console.log('posts articles:', posts)
+  //   const commentsLen = comments.length;
+  //   postsList.push({
+  //     tags: posts.tags,
+  //     comments: posts.comments,
+  //     howManyRead: posts.howManyRead,
+  //     updatedOn: posts.updatedOn,
+  //     _id: posts._id,
+  //     id: posts.id,
+  //     type: posts.type,
+  //     category: posts.category,
+  //     title: posts.title,
+  //     slug: posts.slug,
+  //     cover: await getCover(posts.author),
+  //     content: posts.content,
+  //     author: await getAuthor(posts.author),
+  //     publishedOn: posts.publishedOn,
+  //     __v: posts.__v
+  //   })
+  //   if (commentsLen === i + 1) {
+  //     res.json(commentsList)
+  //   }
+  // })
+  // .catch((err) => {
+  //   console.log('err:', err)
+  //   res.json({
+  //     err,
+  //   });
+  // });
 });
 
 app.get('/most/recent/post', async (req, res) => {
   const postsList = [];
-  console.log('userId:', req.userId);
   Post.find()
     .sort({ publishedOn: -1 })
     .limit(1)
@@ -453,59 +557,42 @@ app.get('/get/category/newest/:category/:year/:month/:day/:slug', async (req, re
     category,
   } = req.params;
 
-  const fullSlug = `${year}/${month}/${day}/${slug}`;
-  let postsList = [];
-  console.log('categoy:', category);
-  Post.find(
-    { category: { $regex: `${category}`, $options: 'i' } },
-    (err, docs) => {
+  try {
+    const fullSlug = `${year}/${month}/${day}/${slug}`;
+    let postsList = [];
 
-    },
-  )
-    .populate('cover')
-    .populate('author')
-    .populate({
-      path: 'author',
-      populate: {
-        path: 'profileImage',
-        model: 'UserProfileImage',
+    const postsCategory = await Post.find(
+      { category: { $regex: `${category}`, $options: 'i' } },
+      (err, docs) => {
+  
       },
-    })
-    .limit(3)
-    .then((posts) => {
-      posts.map((post) => {
-        if (fullSlug !== post.slug) {
-          postsList.push({
-            id: post.id,
-            type: post.type,
-            slug: post.slug,
-            category: post.category,
-            title: post.title,
-            description: post.description,
-            tags: post.tags,
-            audioFile: post.audioFile,
-            cover: post.cover,
-            author: post.author,
-            publishedOn: post.publishedOn,
-            updatedOn: post.updatedOn,
-          });
-        }
+    ).limit(3)
+
+    console.log('postsCategory:', postsCategory);
+
+    const postsLen = postsCategory.length;
+    postsCategory.map(async (post, i) => {
+      postsList.push({
+        id: post.id,
+        type: post.type,
+        slug: post.slug,
+        category: post.category,
+        title: post.title,
+        description: post.description,
+        tags: post.tags,
+        audioFile: post.audioFile,
+        cover: await getCover(post.cover),
+        author: await getAuthor(post.author),
+        publishedOn: post.publishedOn,
+        updatedOn: post.updatedOn,
       });
-      postsList = postsList.reverse();
-      // if (postsList.length === 0) {
-      //   console.log('EMPTY');
-      //   res.json({
-      //     found: false,
-      //   });
-      // }
-      if (postsList.length > 4) {
-        postsList = postsList.slice(0, 4);
-      }
       res.json(postsList);
-    })
-    .catch((err) => {
-      console.log(err);
     });
+
+  } catch(err) {
+    console.log(err)
+  }
+
 });
 
 app.post('/comments/', async (req, res) => {

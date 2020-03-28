@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+var db2 = mongoose.createConnection(process.env.ATLAS_URI_USER, {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useUnifiedTopology: true,
+});
+
 const UserSchema = new mongoose.Schema({
   id: {
     type: String,
@@ -72,6 +78,6 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-const User = mongoose.model('User', UserSchema);
+const User = db2.model('User', UserSchema);
 
 module.exports = User;

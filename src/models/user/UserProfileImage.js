@@ -8,6 +8,13 @@ const {
   promisify,
 } = require('util');
 
+var db2 = mongoose.createConnection(process.env.ATLAS_URI_USER, {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useUnifiedTopology: true,
+});
+
+
 const s3 = new aws.S3();
 
 const UserProfileImageSchema = new mongoose.Schema({
@@ -51,4 +58,4 @@ UserProfileImageSchema.pre('remove', function () {
   );
 });
 
-module.exports = mongoose.model('UserProfileImage', UserProfileImageSchema);
+module.exports = db2.model('UserProfileImage', UserProfileImageSchema);
