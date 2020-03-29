@@ -20,8 +20,6 @@ const PostCover = require('../models/blog/PostCover');
 const User = require('../models/user/User');
 const UserProfileImage = require('../models/user/UserProfileImage');
 
-const conn = require('../connections/slow')
-
 
 const getAuthor = async (authorId) => {
   const user = await User.findOne({
@@ -75,6 +73,10 @@ app.get('/get/comments/:postId', async (req, res) => {
   .populate({
     path: 'author',
     model: User,
+    populate: {
+      path: 'profileImage',
+      model: UserProfileImage,
+    }
   })
     .then((comment) => {
       res.json(comment)
@@ -299,9 +301,11 @@ app.post('/get/user/activities', (req, res) => {
   const {
     posts,
   } = req.body;
-  console.log('posts:', posts)
   Post.find({ _id: { $in: posts } })
-    .populate('cover')
+    .populate({
+      path: 'cover',
+      model: PostCover
+    })
     .sort({ publishedOn: -1 })
     .limit(6)
     .then((activities) => {
@@ -322,33 +326,6 @@ app.get('/get/slug/:year/:month/:day/:slug', (req, res) => {
   } = req.params;
 
   const fullSlug = `${year}/${month}/${day}/${slug}`;
-  // const postsList = [];
-  // Post.find({
-  //   slug: fullSlug,
-  // })
-  //   .populate('cover')
-  //   .then((posts) => {
-  //     posts.map((post) => {
-  //       postsList.push({
-  //         id: post.id,
-  //         type: post.type,
-  //         slug: post.slug,
-  //         category: post.category,
-  //         title: post.title,
-  //         content: post.content,
-  //         tags: post.tags,
-  //         uploadedOn: post.uploadedOn,
-  //         updatedOn: post.updatedOn,
-  //       });
-  //     });
-  //     res.status(200).send(posts);
-  //   })
-  //   .catch((err) => {
-  //     res.json({
-  //       found: false,
-  //       error: err,
-  //     });
-  //   });
 
   Post.findOne({
     slug: fullSlug
@@ -419,49 +396,34 @@ app.get('/get/category/:category', async (req, res) => {
 
 app.get('/get/category/newest/:category/:year/:month/:day/:slug', async (req, res) => {
   const {
-    year,
-    month,
-    day,
-    slug,
     category,
   } = req.params;
 
-  try {
-    const fullSlug = `${year}/${month}/${day}/${slug}`;
-    let postsList = [];
-
-    const postsCategory = await Post.find(
-      { category: { $regex: `${category}`, $options: 'i' } },
-      (err, docs) => {
+  Post.find(
+    { category: { $regex: `${category}`, $options: 'i' } },
+    (err, docs) => {
   
-      },
-    ).limit(3)
-
-    console.log('postsCategory:', postsCategory);
-
-    const postsLen = postsCategory.length;
-    postsCategory.map(async (post, i) => {
-      postsList.push({
-        id: post.id,
-        type: post.type,
-        slug: post.slug,
-        category: post.category,
-        title: post.title,
-        description: post.description,
-        tags: post.tags,
-        audioFile: post.audioFile,
-        cover: await getCover(post.cover),
-        author: await getAuthor(post.author),
-        publishedOn: post.publishedOn,
-        updatedOn: post.updatedOn,
-      });
-      res.json(postsList);
-    });
-
-  } catch(err) {
+    },
+  )
+  .populate({
+    path: 'cover',
+    model: PostCover
+  })
+  .populate({
+    path: 'author',
+    model: User,
+    populate: {
+      path: 'profileImage',
+      model: UserProfileImage,
+    }
+  })
+  .limit(3)
+  .then((post) => {
+    res.json(post);
+  })
+  .catch((err) => {
     console.log(err)
-  }
-
+  })
 });
 
 app.post('/comments/', async (req, res) => {
