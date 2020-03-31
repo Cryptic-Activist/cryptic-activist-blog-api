@@ -1,30 +1,29 @@
 /* eslint-disable array-callback-return */
-const express = require('express');
+const express = require("express");
 
 const app = express();
-const router = express.Router()
-const cors = require('cors');
-const uuidv4 = require('uuid/v4');
-const multer = require('multer');
-const multerConfig = require('../config/multer');
+const router = express.Router();
+const cors = require("cors");
+const uuidv4 = require("uuid/v4");
+const multer = require("multer");
+const multerConfig = require("../config/multer");
 
 // const authMiddleware = require('../middleware/auth');
 
 app.use(cors());
 // app.use(authMiddleware);
 
-const Post = require('../models/blog/Post');
-const PostComment = require('../models/blog/PostComment');
-const PostCommentReply = require('../models/blog/PostCommentReply')
-const PostCover = require('../models/blog/PostCover');
-const User = require('../models/user/User');
-const UserProfileImage = require('../models/user/UserProfileImage');
-
+const Post = require("../models/blog/Post");
+const PostComment = require("../models/blog/PostComment");
+const PostCommentReply = require("../models/blog/PostCommentReply");
+const PostCover = require("../models/blog/PostCover");
+const User = require("../models/user/User");
+const UserProfileImage = require("../models/user/UserProfileImage");
 
 const getAuthor = async (authorId) => {
   const user = await User.findOne({
     _id: authorId
-  })
+  });
   const userImage = await UserProfileImage.findOne({
     _id: user.profileImage
   });
@@ -45,91 +44,98 @@ const getAuthor = async (authorId) => {
     isAdmin: user.isAdmin,
     origin: user.origin,
     createdOn: user.createdOn,
-    __v: user.__v,
-  }
-}
+    __v: user.__v
+  };
+};
 
 const getCover = async (coverId) => {
   try {
     const cover = await PostCover.findOne({
-      _id: coverId,
+      _id: coverId
     });
-    return cover
-  } catch(err) {
+    return cover;
+  } catch (err) {
     console.log(err);
-    return {}
+    return {};
   }
-}
+};
 
-app.get('/get/comments/:postId', async (req, res) => {
+app.get("/get/comments/:postId", async (req, res) => {
   const { postId } = req.params;
 
   PostComment.find({
     post: postId
-  }).populate({
-    path: 'post',
-    model: Post,
   })
-  .populate({
-    path: 'author',
-    model: User,
-    populate: {
-      path: 'profileImage',
-      model: UserProfileImage,
-    }
-  })
+    .populate({
+      path: "post",
+      model: Post
+    })
+    .populate({
+      path: "author",
+      model: User,
+      populate: {
+        path: "profileImage",
+        model: UserProfileImage
+      }
+    })
     .then((comment) => {
-      res.json(comment)
+      res.json(comment);
     })
     .catch((err) => {
-      console.log(err)
-    })
+      console.log(err);
+    });
 });
 
-app.get('/', async (req, res) => {
-  const pagination = req.query.pagination ? parseInt(req.query.pagination, 10) : 10;
+app.get("/", async (req, res) => {
+  const pagination = req.query.pagination
+    ? parseInt(req.query.pagination, 10)
+    : 10;
   const page = req.query.page ? parseInt(req.query.page, 10) : 1;
   const postsList = [];
   Post.find()
     .skip((page - 1) * pagination)
     .limit(pagination)
-    .populate('cover')
+    .populate("cover")
     .then((posts) => {
-      posts.map((post) => postsList.push({
-        id: post.id,
-        title: post.title,
-        category: post.category,
-        content: post.content,
-        slug: post.slug,
-        cover: post.cover,
-        type: post.type,
-        author: post.author,
-        publishedOn: post.publishedOn,
-        updateOn: post.updateOn,
-      }));
+      posts.map((post) =>
+        postsList.push({
+          id: post.id,
+          title: post.title,
+          category: post.category,
+          content: post.content,
+          slug: post.slug,
+          cover: post.cover,
+          type: post.type,
+          author: post.author,
+          publishedOn: post.publishedOn,
+          updateOn: post.updateOn
+        })
+      );
       // console.log('postsList:', posts);
       res.status(200).send(postsList);
     })
     .catch((err) => {
       res.json({
-        err,
+        err
       });
     });
 });
 
-app.get('/short', async (req, res) => {
-  const pagination = req.query.pagination ? parseInt(req.query.pagination, 10) : 10;
+app.get("/short", async (req, res) => {
+  const pagination = req.query.pagination
+    ? parseInt(req.query.pagination, 10)
+    : 10;
   const page = req.query.page ? parseInt(req.query.page, 10) : 1;
   const postsList = [];
   Post.find()
     .sort({ publishedOn: -1 })
     .skip((page - 1) * pagination)
     .limit(6)
-    .populate('cover')
+    .populate("cover")
     .then((posts) => {
       if (posts.lenth === 0) {
         res.status(200).send({
-          found: false,
+          found: false
         });
       } else if (posts.length > 0) {
         posts.map((post) => {
@@ -140,7 +146,7 @@ app.get('/short', async (req, res) => {
             category: post.category,
             cover: post.cover,
             publishedOn: post.publishedOn,
-            updateOn: post.updateOn,
+            updateOn: post.updateOn
           });
         });
 
@@ -149,161 +155,153 @@ app.get('/short', async (req, res) => {
     })
     .catch((err) => {
       res.json({
-        err,
+        err
       });
     });
 });
 
-
-app.get('/home/main-post', async (req, res) => {
+app.get("/home/main-post", async (req, res) => {
   Post.find()
-    .sort('-howManyRead')
+    .sort("-howManyRead")
     .limit(5)
     .populate({
-      path: 'cover',
-      model: PostCover,
+      path: "cover",
+      model: PostCover
     })
     .then((post) => {
       res.json(post);
     })
     .catch((err) => {
-      console.log(err)
-    })
+      console.log(err);
+    });
 });
 
-
-app.get('/home/news', async (req, res) => {
+app.get("/home/news", async (req, res) => {
   Post.find({
-    type: 'News'
+    type: "News"
   })
     .sort({ publishedOn: -1 })
     .limit(6)
     .populate({
-      path: 'cover',
+      path: "cover",
       model: PostCover
     })
     .then((post) => {
-      res.json(post)
+      res.json(post);
     })
     .catch((err) => {
-      console.log(err)
-    }) 
+      console.log(err);
+    });
 });
 
-app.get('/home/most-recent-videos', async (req, res) => {
+app.get("/home/most-recent-videos", async (req, res) => {
   Post.find({
-    type: 'Video'
+    type: "Video"
   })
     .sort({ publishedOn: -1 })
     .limit(4)
     .populate({
-      path: 'cover',
+      path: "cover",
       model: PostCover
     })
     .then((post) => {
-      res.json(post)
+      res.json(post);
     })
     .catch((err) => {
-      console.log(err)
-    }) 
+      console.log(err);
+    });
 });
 
-app.get('/home/tutorials', async (req, res) => {
+app.get("/home/tutorials", async (req, res) => {
   Post.find({
-    type: 'Tutorial'
+    type: "Tutorial"
   })
     .sort({ publishedOn: -1 })
     .limit(6)
     .populate({
-      path: 'cover',
+      path: "cover",
       model: PostCover
     })
     .then((post) => {
-      res.json(post)
+      res.json(post);
     })
     .catch((err) => {
-      console.log(err)
-    }) 
+      console.log(err);
+    });
 });
 
-app.get('/home/articles', async (req, res) => {
+app.get("/home/articles", async (req, res) => {
   Post.find({
-    type: 'Article'
+    type: "Article"
   })
     .sort({ publishedOn: -1 })
     .limit(6)
     .populate({
-      path: 'cover',
+      path: "cover",
       model: PostCover
     })
     .populate({
-      path: 'author',
+      path: "author",
       model: User,
       populate: {
-        path: 'profileImage',
-        model: UserProfileImage,
+        path: "profileImage",
+        model: UserProfileImage
       }
     })
     .then((post) => {
-      res.json(post)
+      res.json(post);
     })
     .catch((err) => {
-      console.log(err)
-    }) 
+      console.log(err);
+    });
 });
 
-app.get('/most/recent/post', async (req, res) => {
+app.get("/most/recent/post", async (req, res) => {
   Post.find()
     .sort({ publishedOn: -1 })
     .limit(1)
     .populate({
-      path: 'cover',
+      path: "cover",
       model: PostCover
     })
     .then((post) => {
-      res.json(post)
+      res.json(post);
     })
     .catch((err) => {
-      console.log(err)
-    }) 
+      console.log(err);
+    });
 });
 
-app.get('/get/top-authors', async (req, res) => {
+app.get("/get/top-authors", async (req, res) => {
   User.find()
     .limit(3)
     .populate({
-      path: 'profileImage',
+      path: "profileImage",
       model: UserProfileImage
     })
     .then((user) => {
-      res.json(user)
+      res.json(user);
     })
     .catch((err) => {
-      console.log(err)
-    }) 
-  
+      console.log(err);
+    });
 });
 
-
-app.get('/cover', async (req, res) => {
-  const {
-    title,
-  } = req.params;
+app.get("/cover", async (req, res) => {
+  const { title } = req.params;
 
   const postCover = await Post.find({
-    title,
+    title
   });
 
   return res.json(postCover);
 });
 
-app.post('/get/user/activities', (req, res) => {
-  const {
-    posts,
-  } = req.body;
+app.post("/get/user/activities", (req, res) => {
+  const { posts } = req.body;
   Post.find({ _id: { $in: posts } })
     .populate({
-      path: 'cover',
+      path: "cover",
       model: PostCover
     })
     .sort({ publishedOn: -1 })
@@ -317,63 +315,61 @@ app.post('/get/user/activities', (req, res) => {
 });
 
 // Get Podcast by slug
-app.get('/get/slug/:year/:month/:day/:slug', (req, res) => {
-  const {
-    year,
-    month,
-    day,
-    slug,
-  } = req.params;
+app.get("/get/slug/:year/:month/:day/:slug", (req, res) => {
+  const { year, month, day, slug } = req.params;
 
   const fullSlug = `${year}/${month}/${day}/${slug}`;
 
   Post.findOne({
     slug: fullSlug
   })
-  .populate({
-    path: 'cover',
-    model: PostCover
-  })
-  .populate({
-    path: 'author',
-    model: User,
-    populate: {
-      path: 'profileImage',
-      model: UserProfileImage,
-    }
-  })
-  .then((post) => {
-    res.json(post)
-  })
-  .catch((err) => {
-    console.log(err)
-  }) 
-
-
+    .populate({
+      path: "cover",
+      model: PostCover
+    })
+    .populate({
+      path: "author",
+      model: User,
+      populate: {
+        path: "profileImage",
+        model: UserProfileImage
+      }
+    })
+    .then((post) => {
+      res.json(post);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
-app.get('/get/category/:category', async (req, res) => {
+app.get("/get/category/:category", async (req, res) => {
   const { category } = req.params;
   const postsList = [];
-  const pagination = req.query.pagination ? parseInt(req.query.pagination, 10) : 10;
+  const pagination = req.query.pagination
+    ? parseInt(req.query.pagination, 10)
+    : 10;
   const page = req.query.page ? parseInt(req.query.page, 10) : 1;
-  console.log('categoy:', category);
+
   let newCategory;
-  if (category.indexOf('-') !== -1) {
-    newCategory = category.split('-').join(' ');
-  } else if (category.indexOf('-') === -1) {
+  if (category.indexOf("-") !== -1) {
+    newCategory = category.split("-").join(" ");
+  } else if (category.indexOf("-") === -1) {
     newCategory = category;
   }
   Post.find(
-    { category: { $regex: `${newCategory}`, $options: 'i' } },
+    { category: { $regex: `${newCategory}`, $options: "i" } },
     (err, docs) => {
-      console.log('err:', err);
-    },
+      console.log("err:", err);
+    }
   )
     // .sort({ publishedOn: -1 })
     .skip((page - 1) * pagination)
     .limit(pagination)
-    .populate('cover')
+    .populate({
+      path: "cover",
+      model: PostCover
+    })
     .then((posts) => {
       posts.map((post) => {
         postsList.push({
@@ -382,56 +378,53 @@ app.get('/get/category/:category', async (req, res) => {
           category: post.category,
           cover: post.cover,
           publishedOn: post.publishedOn,
-          updateOn: post.updateOn,
+          updateOn: post.updateOn
         });
       });
       res.status(200).send(postsList);
     })
     .catch((err) => {
       res.json({
-        err,
+        err
       });
     });
 });
 
-app.get('/get/category/newest/:category/:year/:month/:day/:slug', async (req, res) => {
-  const {
-    category,
-  } = req.params;
+app.get(
+  "/get/category/newest/:category/:year/:month/:day/:slug",
+  async (req, res) => {
+    const { category } = req.params;
 
-  Post.find(
-    { category: { $regex: `${category}`, $options: 'i' } },
-    (err, docs) => {
-  
-    },
-  )
-  .populate({
-    path: 'cover',
-    model: PostCover
-  })
-  .populate({
-    path: 'author',
-    model: User,
-    populate: {
-      path: 'profileImage',
-      model: UserProfileImage,
-    }
-  })
-  .limit(3)
-  .then((post) => {
-    res.json(post);
-  })
-  .catch((err) => {
-    console.log(err)
-  })
-});
+    Post.find(
+      { category: { $regex: `${category}`, $options: "i" } },
+      (err, docs) => {}
+    )
+      .populate({
+        path: "cover",
+        model: PostCover
+      })
+      .populate({
+        path: "author",
+        model: User,
+        populate: {
+          path: "profileImage",
+          model: UserProfileImage
+        }
+      })
+      .limit(3)
+      .then((post) => {
+        res.json(post);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+);
 
-app.post('/comments/', async (req, res) => {
-  const {
-    postId
-  } = req.body;
+app.post("/comments/", async (req, res) => {
+  const { postId } = req.body;
 
-  console.log('comments:', postId)
+  console.log("comments:", postId);
 
   // #####################################################
   // #######                                       #######
@@ -441,30 +434,28 @@ app.post('/comments/', async (req, res) => {
   // #####################################################
 
   PostComment.find({
-    post: postId,
+    post: postId
   })
     .populate({
-      path: 'author',
+      path: "author",
       model: User,
       populate: {
-        path: 'profileImage',
-        model: UserProfileImage,
+        path: "profileImage",
+        model: UserProfileImage
       }
     })
     .then((commentsArray) => {
-      console.log('commentsArray:', commentsArray)
-      res.json(commentsArray)
+      console.log("commentsArray:", commentsArray);
+      res.json(commentsArray);
     })
     .catch((err) => {
       res.json({
-        err,
-      })
-    })
-
+        err
+      });
+    });
 });
 
-
-app.get('/get/categories/newest/:number', async (req, res) => {
+app.get("/get/categories/newest/:number", async (req, res) => {
   const { number } = req.params;
   const postsList = [];
   Post.find()
@@ -478,37 +469,40 @@ app.get('/get/categories/newest/:number', async (req, res) => {
     })
     .catch((err) => {
       res.json({
-        err,
+        err
       });
     });
 });
 
-app.get('/comments', (req, res) => {
-  const {
-    postId,
-  } = req.query;
-  console.log("postId", postId)
+app.get("/comments", (req, res) => {
+  const { postId } = req.query;
+  console.log("postId", postId);
 });
 
-app.get('/get/tag/:tag', async (req, res) => {
+app.get("/get/tag/:tag", async (req, res) => {
   const { tag } = req.params;
-  const pagination = req.query.pagination ? parseInt(req.query.pagination, 10) : 10;
+  const pagination = req.query.pagination
+    ? parseInt(req.query.pagination, 10)
+    : 10;
   const page = req.query.page ? parseInt(req.query.page, 10) : 1;
   const postsList = [];
   let newTag;
-  if (tag.indexOf('-') !== -1) {
-    newTag = tag.split('-').join(' ');
-  } else if (tag.indexOf('-') === -1) {
+  if (tag.indexOf("-") !== -1) {
+    newTag = tag.split("-").join(" ");
+  } else if (tag.indexOf("-") === -1) {
     newTag = tag;
   }
-  
+
   Post.find({
-    tags: newTag,
+    tags: newTag
   })
     .skip((page - 1) * pagination)
     .limit(pagination)
     .sort()
-    .populate('cover')
+    .populate({
+      path: "cover",
+      model: PostCover
+    })
     .then((posts) => {
       if (posts.length === 0) {
         res.status(200).send([]);
@@ -520,7 +514,7 @@ app.get('/get/tag/:tag', async (req, res) => {
             category: post.category,
             cover: post.cover,
             publishedOn: post.publishedOn,
-            updateOn: post.updateOn,
+            updateOn: post.updateOn
           });
         });
         res.status(200).send(postsList);
@@ -528,25 +522,26 @@ app.get('/get/tag/:tag', async (req, res) => {
     })
     .catch((err) => {
       res.json({
-        err,
+        err
       });
     });
 });
 
-app.put('/update/post/how-many-read', (req, res) => {
-  const {
-    slug,
-    howManyReadNumber,
-  } = req.body;
-  console.log('slug:', slug)
-  console.log('howManyread:', howManyReadNumber)
-  Post.updateOne({
-    slug,
-  }, {
-    howManyRead: howManyReadNumber + 1,
-  }, {
-    runValidators: true,
-  })
+app.put("/update/post/how-many-read", (req, res) => {
+  const { slug, howManyReadNumber } = req.body;
+  console.log("slug:", slug);
+  console.log("howManyread:", howManyReadNumber);
+  Post.updateOne(
+    {
+      slug
+    },
+    {
+      howManyRead: howManyReadNumber + 1
+    },
+    {
+      runValidators: true
+    }
+  )
     .then(() => {
       res.status(200).send({ howManyReadNumber: howManyReadNumber + 1 });
     })
@@ -554,6 +549,5 @@ app.put('/update/post/how-many-read', (req, res) => {
       console.log(err);
     });
 });
-
 
 module.exports = app;
