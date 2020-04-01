@@ -372,6 +372,8 @@ app.get("/get/category/:category", async (req, res) => {
     })
     .then((posts) => {
       posts.map((post) => {
+        console.log("post title:", post.title);
+        console.log("post slug:", post.slug);
         postsList.push({
           title: post.title,
           slug: post.slug,
