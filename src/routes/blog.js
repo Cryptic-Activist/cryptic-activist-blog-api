@@ -161,6 +161,7 @@ app.get("/short", async (req, res) => {
 });
 
 app.get("/home/main-post", async (req, res) => {
+  let postsList = [];
   Post.find()
     .sort("-howManyRead")
     .limit(5)
@@ -168,8 +169,18 @@ app.get("/home/main-post", async (req, res) => {
       path: "cover",
       model: PostCover
     })
-    .then((post) => {
-      res.json(post);
+    .then((posts) => {
+      posts.map((post) => {
+        postsList.push({
+          title: post.title,
+          category: post.category,
+          publishedOn: post.publishedOn,
+          cover: {
+            url: post.cover.url
+          }
+        });
+      });
+      res.json(postsList);
     })
     .catch((err) => {
       console.log(err);
@@ -177,6 +188,7 @@ app.get("/home/main-post", async (req, res) => {
 });
 
 app.get("/home/news", async (req, res) => {
+  let postsList = [];
   Post.find({
     type: "News"
   })
@@ -186,8 +198,18 @@ app.get("/home/news", async (req, res) => {
       path: "cover",
       model: PostCover
     })
-    .then((post) => {
-      res.json(post);
+    .then((posts) => {
+      posts.map((post) => {
+        postsList.push({
+          title: post.title,
+          category: post.category,
+          publishedOn: post.publishedOn,
+          cover: {
+            url: post.cover.url
+          }
+        });
+      });
+      res.json(postsList);
     })
     .catch((err) => {
       console.log(err);
@@ -195,6 +217,7 @@ app.get("/home/news", async (req, res) => {
 });
 
 app.get("/home/most-recent-videos", async (req, res) => {
+  let postsList = [];
   Post.find({
     type: "Video"
   })
@@ -204,8 +227,18 @@ app.get("/home/most-recent-videos", async (req, res) => {
       path: "cover",
       model: PostCover
     })
-    .then((post) => {
-      res.json(post);
+    .then((posts) => {
+      posts.map((post) => {
+        postsList.push({
+          title: post.title,
+          category: post.category,
+          publishedOn: post.publishedOn,
+          cover: {
+            url: post.cover.url
+          }
+        });
+      });
+      res.json(postsList);
     })
     .catch((err) => {
       console.log(err);
@@ -213,6 +246,7 @@ app.get("/home/most-recent-videos", async (req, res) => {
 });
 
 app.get("/home/tutorials", async (req, res) => {
+  let postsList = [];
   Post.find({
     type: "Tutorial"
   })
@@ -222,8 +256,18 @@ app.get("/home/tutorials", async (req, res) => {
       path: "cover",
       model: PostCover
     })
-    .then((post) => {
-      res.json(post);
+    .then((posts) => {
+      posts.map((post) => {
+        postsList.push({
+          title: post.title,
+          category: post.category,
+          publishedOn: post.publishedOn,
+          cover: {
+            url: post.cover.url
+          }
+        });
+      });
+      res.json(postsList);
     })
     .catch((err) => {
       console.log(err);
@@ -231,6 +275,7 @@ app.get("/home/tutorials", async (req, res) => {
 });
 
 app.get("/home/articles", async (req, res) => {
+  let postsList = [];
   Post.find({
     type: "Article"
   })
@@ -248,8 +293,24 @@ app.get("/home/articles", async (req, res) => {
         model: UserProfileImage
       }
     })
-    .then((post) => {
-      res.json(post);
+    .then((posts) => {
+      posts.map((post) => {
+        postsList.push({
+          title: post.title,
+          category: post.category,
+          publishedOn: post.publishedOn,
+          cover: {
+            url: post.cover.url
+          },
+          author: {
+            name: post.author.name,
+            profileImage: {
+              url: post.author.profileImage.url
+            }
+          }
+        });
+      });
+      res.json(postsList);
     })
     .catch((err) => {
       console.log(err);
