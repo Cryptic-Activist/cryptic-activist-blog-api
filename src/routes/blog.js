@@ -88,6 +88,7 @@ app.get("/get/comments/:postId", async (req, res) => {
           _id: comment._id,
           author: {
             name: comment.author.name,
+            username: comment.author.username,
             profileImage: {
               url: comment.author.profileImage.url
             }
