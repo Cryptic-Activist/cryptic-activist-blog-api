@@ -63,6 +63,8 @@ const getCover = async (coverId) => {
 app.get("/get/comments/:postId", async (req, res) => {
   const { postId } = req.params;
 
+  let commentsList = [];
+
   PostComment.find({
     post: postId
   })
@@ -78,8 +80,25 @@ app.get("/get/comments/:postId", async (req, res) => {
         model: UserProfileImage
       }
     })
-    .then((comment) => {
-      res.json(comment);
+    .then((comments) => {
+      comments.map((comment) => {
+        commentsList.push({
+          replies: comment.replies,
+          updatedOn: comment.updatedOn,
+          _id: comment._id,
+          author: {
+            name: comment.author.name,
+            profileImage: {
+              url: comment.author.profileImage.url
+            }
+          },
+          content: comment.content,
+          publishedOn: comment.publishedOn,
+          likes: comment.likes,
+          dislikes: comment.dislikes
+        });
+      });
+      res.json(commentsList);
     })
     .catch((err) => {
       console.log(err);
@@ -402,7 +421,31 @@ app.get("/get/slug/:year/:month/:day/:slug", (req, res) => {
       }
     })
     .then((post) => {
-      res.json(post);
+      res.json({
+        _id: post._id,
+        tags: post.tags,
+        comments: post.comments,
+        howManyRead: post.howManyRead,
+        updateOn: post.updateOn,
+        type: post.type,
+        category: post.category,
+        title: post.title,
+        slug: post.slug,
+        cover: {
+          url: post.cover.url
+        },
+        content: post.content,
+        author: {
+          _id: post.author._id,
+          name: post.author.name,
+          quote: post.author.quote,
+          username: post.author.username,
+          profileImage: {
+            url: post.author.profileImage.url
+          }
+        },
+        publishedOn: post.publishedOn
+      });
     })
     .catch((err) => {
       console.log(err);
@@ -461,6 +504,7 @@ app.get("/get/category/:category", async (req, res) => {
 app.get(
   "/get/category/newest/:category/:year/:month/:day/:slug",
   async (req, res) => {
+    let postsList = [];
     const { category } = req.params;
 
     Post.find(
@@ -480,8 +524,24 @@ app.get(
         }
       })
       .limit(3)
-      .then((post) => {
-        res.json(post);
+      .then((posts) => {
+        posts.map((post) => {
+          postsList.push({
+            title: post.title,
+            publishedOn: post.publishedOn,
+            slug: post.slug,
+            cover: {
+              url: post.cover.url
+            },
+            author: {
+              name: post.author.name,
+              profileImage: {
+                url: post.author.profileImage.url
+              }
+            }
+          });
+        });
+        res.json(postsList);
       })
       .catch((err) => {
         console.log(err);
