@@ -175,6 +175,7 @@ app.get("/home/main-post", async (req, res) => {
           title: post.title,
           category: post.category,
           publishedOn: post.publishedOn,
+          slug: post.slug,
           cover: {
             url: post.cover.url
           }
@@ -204,6 +205,7 @@ app.get("/home/news", async (req, res) => {
           title: post.title,
           category: post.category,
           publishedOn: post.publishedOn,
+          slug: post.slug,
           cover: {
             url: post.cover.url
           }
@@ -233,6 +235,7 @@ app.get("/home/most-recent-videos", async (req, res) => {
           title: post.title,
           category: post.category,
           publishedOn: post.publishedOn,
+          slug: post.slug,
           cover: {
             url: post.cover.url
           }
@@ -262,6 +265,7 @@ app.get("/home/tutorials", async (req, res) => {
           title: post.title,
           category: post.category,
           publishedOn: post.publishedOn,
+          slug: post.slug,
           cover: {
             url: post.cover.url
           }
@@ -299,6 +303,7 @@ app.get("/home/articles", async (req, res) => {
           title: post.title,
           category: post.category,
           publishedOn: post.publishedOn,
+          slug: post.slug,
           cover: {
             url: post.cover.url
           },
