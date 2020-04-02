@@ -481,13 +481,13 @@ app.get("/get/category/:category", async (req, res) => {
     })
     .then((posts) => {
       posts.map((post) => {
-        console.log("post title:", post.title);
-        console.log("post slug:", post.slug);
         postsList.push({
           title: post.title,
           slug: post.slug,
           category: post.category,
-          cover: post.cover,
+          cover: {
+            url: post.cover.url
+          },
           publishedOn: post.publishedOn,
           updateOn: post.updateOn
         });
@@ -640,7 +640,9 @@ app.get("/get/tag/:tag", async (req, res) => {
             title: post.title,
             slug: post.slug,
             category: post.category,
-            cover: post.cover,
+            cover: {
+              url: post.cover.url
+            },
             publishedOn: post.publishedOn,
             updateOn: post.updateOn
           });
